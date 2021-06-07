@@ -38,15 +38,23 @@
 ;    verbose : in, optional, type=bool
 ;
 ;       Print more info.
+;
+;    no_spectral : in, optional, type=bool
+;
+;       Don't download 'spectral' versions of cubes
 ; 
 ; 
 ; :History:
 ; 
 ;    2020-12-04 : OA. First version.
+;
+;    2020-06-07 : OA. Eneable filters in 'get_meta_datas', add
+;                 'no_spectral' keyword. 
 ; 
 ;-
-pro seek_and_get, dir = dir, any=any, no_proprietary=no_proprietary, verbose=verbose, nodownload=nodownload
+pro seek_and_get, dir = dir, any=any, no_proprietary=no_proprietary, verbose=verbose, nodownload=nodownload,  no_spectral=no_spectral
 
+  print
   print, "Choose an instrument:"
   print
   print," [0]: CRISP"
@@ -60,10 +68,18 @@ pro seek_and_get, dir = dir, any=any, no_proprietary=no_proprietary, verbose=ver
 ;;     2: intrument = 'TRIPPEL'
   endcase
 
-;;  dataset = (get_datasets(name = instrument))[0]
+  if ~keyword_set(no_spectral) then begin
+     print
+     print, "Would you like to download also 'sp' versions of cubes" 
+     print, "(it improves 'CRISPEX' performance) [Y/N]? "
+     print
+     answ = ''
+     read, " > ",  answ
+     if strupcase(answ) eq 'Y' then no_spectral = 0B else no_spectral = 1B
+  endif
 
-  print
-  if ~keyword_set(any) then begin
+  if ~keyword_set(any) then BEGIN
+     print
      print, "Enter dates of observations (press 'Enter' for any): "
      print
      date_beg = ''
@@ -93,7 +109,7 @@ pro seek_and_get, dir = dir, any=any, no_proprietary=no_proprietary, verbose=ver
      read, "Wavelength min, nm > ",wavelnth_min
      if wavelnth_min eq '' then wavelnth_min = '300' 
      print
-     read,"Wavelength max, nm > ",wavelnth_max
+     read, "Wavelength max, nm > ",wavelnth_max
      if wavelnth_max eq '' then wavelnth_max = '1500'
 
      if instrument eq 'CRISP' then begin
@@ -106,11 +122,11 @@ pro seek_and_get, dir = dir, any=any, no_proprietary=no_proprietary, verbose=ver
         print
         read," > ", ans
         case ans of
-           0: naxis4 = 4
-           1: naxis4 = 1
-           2: naxis4 = 0
+           0: naxis4 = '4'
+           1: naxis4 = '1'
+           2: naxis4 = '0'
         endcase
-     endif else naxis4 = 0
+     endif else naxis4 = '0'
   endif else begin
      date_beg = '1972-01-01'
      date_end = '2072-01-01'
@@ -120,6 +136,8 @@ pro seek_and_get, dir = dir, any=any, no_proprietary=no_proprietary, verbose=ver
      wavelnth_max = '2000'
      naxis4 = 0
   endelse
+  dt_beg = date_beg+'T'+time_beg+'Z'
+  dt_end = date_end+'T'+time_end+'Z'
 
   ;; Add solar coordinates selection
   
@@ -136,9 +154,14 @@ pro seek_and_get, dir = dir, any=any, no_proprietary=no_proprietary, verbose=ver
   offset = 0
   limit = 10
   credentials = 0B
+
   repeat begin
      ;; unfortunately filters ( like - wavelnth={min:'700',max:'900'} ) don't work with get_meta_datas
-     metadatas = get_meta_datas(dataset[0], limit = limit, offset = offset)
+     
+     if naxis4 ne '0' then $
+       metadatas = get_meta_datas(dataset[0], limit=limit, offset=offset, wavelnth={min:wavelnth_min, max:wavelnth_max}, date_obs={min:dt_beg,  max:dt_end},  naxis4=naxis4 ) $
+     else $
+       metadatas = get_meta_datas(dataset[0], limit=limit, offset=offset, wavelnth={min:wavelnth_min, max:wavelnth_max}, date_obs={min:dt_beg,  max:dt_end})
      Nmetas = n_elements(metadatas)
 
      for i = 0, Nmetas-1 do begin
@@ -150,10 +173,7 @@ pro seek_and_get, dir = dir, any=any, no_proprietary=no_proprietary, verbose=ver
         t_end = (strsplit(metadata.date_end,'T',/extract))[1]
         if t_beg gt time_end or t_end lt time_beg then continue
 
-        if metadata.wavelnth lt double(wavelnth_min) or metadata.wavelnth gt double(wavelnth_max) then continue
-
-        if naxis4 ne 0 then if metadata.naxis4 ne naxis4 then continue
-        if metadata.naxis4 eq 4 then pol = 'YES' else pol = 'NO'
+        if metadata.naxis4 eq '4' then pol = 'YES' else pol = 'NO'
 
         release_date = metadata.release
         if release_date gt current_date then begin
