@@ -48,11 +48,12 @@
 ; 
 ;    2020-12-04 : OA. First version.
 ;
-;    2020-06-07 : OA. Eneable filters in 'get_meta_datas', add
-;                 'no_spectral' keyword. 
+;    2020-06-09 : OA. Eneable filters in get_meta_datas, add
+;                 no_spectral and no_wbcube keywords. 
 ; 
 ;-
-pro seek_and_get, dir = dir, any=any, no_proprietary=no_proprietary, verbose=verbose, nodownload=nodownload,  no_spectral=no_spectral
+pro seek_and_get, dir=dir, any=any, no_proprietary=no_proprietary, verbose=verbose $
+                  , nodownload=nodownload,  no_spectral=no_spectral,  no_wbcube=no_wbcube
 
   print
   print, "Choose an instrument:"
@@ -63,78 +64,88 @@ pro seek_and_get, dir = dir, any=any, no_proprietary=no_proprietary, verbose=ver
   print
   read, " > ", ans
   case ans of
-     0: instrument = 'CRISP'
-     1: instrument = 'CHROMIS'
-;;     2: intrument = 'TRIPPEL'
+    0: instrument = 'CRISP'
+    1: instrument = 'CHROMIS'
+;;    2: intrument = 'TRIPPEL'
   endcase
 
   if ~keyword_set(no_spectral) then begin
-     print
-     print, "Would you like to download also 'sp' versions of cubes" 
-     print, "(it improves 'CRISPEX' performance) [Y/N]? "
-     print
-     answ = ''
-     read, " > ",  answ
-     if strupcase(answ) eq 'Y' then no_spectral = 0B else no_spectral = 1B
+    print
+    print, "Would you like to download also 'sp' versions of cubes" 
+    print, "(it improves 'CRISPEX' performance) [Y/N]? "
+    print
+    answ = ''
+    read, " > ",  answ
+    if strupcase(answ) eq 'Y' then no_spectral = 0B else no_spectral = 1B
   endif
 
-  if ~keyword_set(any) then BEGIN
-     print
-     print, "Enter dates of observations (press 'Enter' for any): "
-     print
-     date_beg = ''
-     date_end = ''
-     read," Begin date (YYYY-MM-DD) > ", date_beg
-     if date_beg eq '' then date_beg = '1972-01-01'  
-     print
-     read," End date (YYYY-MM-DD) > ", date_end
-     if date_end eq '' then date_end = '2072-01-01'
+  if ~keyword_set(no_wbcube) then begin
+    print
+    print, "Would you like to download also WB cube" 
+    print, "(you may need it for alignment) [Y/N]? "
+    print
+    answ = ''
+    read, " > ",  answ
+    if strupcase(answ) eq 'Y' then no_wbcube = 0B else no_cube = 1B
+  endif
 
-     print
-     print, "Enter time of observations (press 'Enter' for any): "
-     print
-     time_beg = ''
-     time_end = ''
-     read," Begin time (hh:mm:ss) > ", time_beg
-     if time_beg eq '' then time_beg = '00:00:01'
-     print
-     read," End time (hh:mm:ss) > ", time_end
-     if time_end eq '' then time_end = '23:59:59'
+  if ~keyword_set(any) then begin
+    print
+    print, "Enter dates of observations (press 'Enter' for any): "
+    print
+    date_beg = ''
+    date_end = ''
+    read," Begin date (YYYY-MM-DD) > ", date_beg
+    if date_beg eq '' then date_beg = '1972-01-01'  
+    print
+    read," End date (YYYY-MM-DD) > ", date_end
+    if date_end eq '' then date_end = '2072-01-01'
 
-     print
-     print, "Enter wavelengths (press 'Enter' for any): "
-     print
-     wavelnth_min = ''
-     wavelnth_max = ''
-     read, "Wavelength min, nm > ",wavelnth_min
-     if wavelnth_min eq '' then wavelnth_min = '300' 
-     print
-     read, "Wavelength max, nm > ",wavelnth_max
-     if wavelnth_max eq '' then wavelnth_max = '1500'
+    print
+    print, "Enter time of observations (press 'Enter' for any): "
+    print
+    time_beg = ''
+    time_end = ''
+    read," Begin time (hh:mm:ss) > ", time_beg
+    if time_beg eq '' then time_beg = '00:00:01'
+    print
+    read," End time (hh:mm:ss) > ", time_end
+    if time_end eq '' then time_end = '23:59:59'
 
-     if instrument eq 'CRISP' then begin
-        print
-        print, "Choose type of data:"
-        print
-        print," [0]: Polarimetric"
-        print," [1]: Non-polarimetric"
-        print," [2]: Any"
-        print
-        read," > ", ans
-        case ans of
-           0: naxis4 = '4'
-           1: naxis4 = '1'
-           2: naxis4 = '0'
-        endcase
-     endif else naxis4 = '0'
+    print
+    print, "Enter wavelengths (press 'Enter' for any): "
+    print
+    wavelnth_min = ''
+    wavelnth_max = ''
+    read, "Wavelength min, nm > ",wavelnth_min
+    if wavelnth_min eq '' then wavelnth_min = '300' 
+    print
+    read, "Wavelength max, nm > ",wavelnth_max
+    if wavelnth_max eq '' then wavelnth_max = '1500'
+
+    if instrument eq 'CRISP' then begin
+       print
+       print, "Choose type of data:"
+       print
+       print," [0]: Polarimetric"
+       print," [1]: Non-polarimetric"
+       print," [2]: Any"
+       print
+       read," > ", ans
+       case ans of
+         0: naxis4 = '4'
+         1: naxis4 = '1'
+         2: naxis4 = '0'
+       endcase
+    endif else naxis4 = '0'
   endif else begin
-     date_beg = '1972-01-01'
-     date_end = '2072-01-01'
-     time_beg = '00:00:01'
-     time_end = '23:59:59'
-     wavelnth_min = '200'
-     wavelnth_max = '2000'
-     naxis4 = 0
+    date_beg = '1972-01-01'
+    date_end = '2072-01-01'
+    time_beg = '00:00:01'
+    time_end = '23:59:59'
+    wavelnth_min = '200'
+    wavelnth_max = '2000'
+    naxis4 = 0
   endelse
   dt_beg = date_beg+'T'+time_beg+'Z'
   dt_end = date_end+'T'+time_end+'Z'
@@ -156,108 +167,111 @@ pro seek_and_get, dir = dir, any=any, no_proprietary=no_proprietary, verbose=ver
   credentials = 0B
 
   repeat begin
-     ;; unfortunately filters ( like - wavelnth={min:'700',max:'900'} ) don't work with get_meta_datas
-     
-     if naxis4 ne '0' then $
-       metadatas = get_meta_datas(dataset[0], limit=limit, offset=offset, wavelnth={min:wavelnth_min, max:wavelnth_max}, date_obs={min:dt_beg,  max:dt_end},  naxis4=naxis4 ) $
-     else $
-       metadatas = get_meta_datas(dataset[0], limit=limit, offset=offset, wavelnth={min:wavelnth_min, max:wavelnth_max}, date_obs={min:dt_beg,  max:dt_end})
-     Nmetas = n_elements(metadatas)
+    if naxis4 ne '0' then $
+      metadatas = get_meta_datas(dataset[0], limit=limit, offset=offset, wavelnth={min:wavelnth_min, max:wavelnth_max}, date_obs={min:dt_beg,  max:dt_end},  naxis4=naxis4 ) $
+    else $
+      metadatas = get_meta_datas(dataset[0], limit=limit, offset=offset, wavelnth={min:wavelnth_min, max:wavelnth_max}, date_obs={min:dt_beg,  max:dt_end})
+    Nmetas = n_elements(metadatas)
 
-     for i = 0, Nmetas-1 do begin
-        metadata = metadatas[i]
-        obs_date = (strsplit(metadata.date_obs,'T',/extract))[0]
-        if obs_date lt date_beg or obs_date gt date_end then continue
+    for i = 0, Nmetas-1 do begin
+      metadata = metadatas[i]
+      obs_date = (strsplit(metadata.date_obs,'T',/extract))[0]
+      if obs_date lt date_beg or obs_date gt date_end then continue
 
-        t_beg = (strsplit(metadata.date_beg,'T',/extract))[1]
-        t_end = (strsplit(metadata.date_end,'T',/extract))[1]
-        if t_beg gt time_end or t_end lt time_beg then continue
+      t_beg = (strsplit(metadata.date_beg,'T',/extract))[1]
+      t_end = (strsplit(metadata.date_end,'T',/extract))[1]
+      if t_beg gt time_end or t_end lt time_beg then continue
 
-        if metadata.naxis4 eq '4' then pol = 'YES' else pol = 'NO'
+      if metadata.naxis4 eq '4' then pol = 'YES' else pol = 'NO'
 
-        release_date = metadata.release
-        if release_date gt current_date then begin
-           propr = 'YES'
-           if ~credentials then begin
-              if ~keyword_set(no_proprietary) then begin
-                 print
-                 print, 'There are proprietary data among datasets.'
-                 print
-                 user_name=''
-                 user_passwd=''
-                 reply=''
-                 read, 'Do you want to proceed to authentication? (Y/N) ', reply
-                 if strlowcase(reply) eq 'y' then begin
-                    read, 'Username: ', user_name
-                    bb = string(13B)
-                    outline = string(replicate(32B, 25))
-                    ll = 'Password: '
-                    strput,outline, ll
-                    print,bb,outline, FORMAT = '(A,A,$)'
-                    repeat begin
-                       q=get_kbrd(/KEY_NAME)
-                       if byte(q) ne 10 then begin
-                          ll += '*'
-                          strput, outline, ll
-                          user_passwd += q
-                          print,bb,outline, FORMAT = '(A,A,$)'
-                       endif
-                    endrep until byte(q) eq 10
-                    ;;read, 'Password: ', user_passwd
-                    credentials = 1B
-                 endif else begin
-                    print, 'This data are proprietary. For more information about data policy please read  https://dubshen.astro.su.se/wiki/index.php/Science_data.'
-                    print, 'You will see only open data from now on.'
-                    no_proprietary = 1B
-                 endelse
-              endif
-           endif
-           if ~credentials or keyword_set(no_proprietary) then continue
-        endif else propr = 'NO'
+      release_date = metadata.release
+      if release_date gt current_date then begin
+        propr = 'YES'
+        if ~credentials then begin
+          if ~keyword_set(no_proprietary) then begin
+            print
+            print, 'There are proprietary data among datasets.'
+            print
+            user_name=''
+            user_passwd=''
+            reply=''
+            read, 'Do you want to proceed to authentication? (Y/N) ', reply
+            if strlowcase(reply) eq 'y' then begin
+              read, 'Username: ', user_name
+              bb = string(13B)
+              outline = string(replicate(32B, 25))
+              ll = 'Password: '
+              strput,outline, ll
+              print,bb,outline, FORMAT = '(A,A,$)'
+              repeat begin
+                q=get_kbrd(/KEY_NAME)
+                if byte(q) ne 10 then begin
+                  ll += '*'
+                  strput, outline, ll
+                  user_passwd += q
+                  print,bb,outline, FORMAT = '(A,A,$)'
+                endif
+              endrep until byte(q) eq 10
+              ;;read, 'Password: ', user_passwd
+              credentials = 1B
+            endif else begin
+              print, 'This data are proprietary. For more information about data policy please read  https://dubshen.astro.su.se/wiki/index.php/Science_data.'
+              print, 'You will see only open data from now on.'
+              no_proprietary = 1B
+            endelse
+          endif
+        endif
+        if ~credentials or keyword_set(no_proprietary) then continue
+      endif else propr = 'NO'
 
-        a_set = {set, no:0, d_obs:'', t_beg:'', t_end:'', wavelnth:'', polar:'', propr:''}
-        a_set.no = i
-        a_set.d_obs = (strsplit(metadata.date_obs,'T',/extract))[0]
-        a_set.t_beg = (strsplit(t_beg,'.',/extract))[0]
-        a_set.t_end = (strsplit(t_end,'.',/extract))[0]
-        a_set.wavelnth = string(metadata.wavelnth,format='(f7.2)')
-        a_set.polar = pol
-        a_set.propr = propr
+      a_set = {set, no:0, d_obs:'', t_beg:'', t_end:'', wavelnth:'', polar:'', propr:''}
+      a_set.no = i
+      a_set.d_obs = (strsplit(metadata.date_obs,'T',/extract))[0]
+      a_set.t_beg = (strsplit(t_beg,'.',/extract))[0]
+      a_set.t_end = (strsplit(t_end,'.',/extract))[0]
+      a_set.wavelnth = string(metadata.wavelnth,format='(f7.2)')
+      a_set.polar = pol
+      a_set.propr = propr
 
-        if n_elements(sets) eq 0 then sets=[a_set] else sets = [sets, a_set]
-     endfor
+      if n_elements(sets) eq 0 then sets=[a_set] else sets = [sets, a_set]
+    endfor
 
-     Nsets = n_elements(sets)
-     if Nsets ne 0 then begin
+    Nsets = n_elements(sets)
+    if Nsets ne 0 then begin
+      print
+      print,"No.    date_obs      time_beg     time_end      wavelnth   polarimetric   proprietary"
+      for j = 0, Nsets-1 do begin           
         print
-        print,"No.    date_obs      time_beg     time_end      wavelnth   polarimetric   proprietary"
-        for j = 0, Nsets-1 do begin           
-           print
-           ;; offset is incremented in get_meta_datas, we have to reduce it here
-           print, '[',strtrim(j+offset-limit, 2),']   ', sets[j].d_obs, '     ', sets[j].t_beg, '     ', sets[j].t_end, '      ', sets[j].wavelnth, '         ', sets[j].polar, '          ', sets[j].propr
+        ;; offset is incremented in get_meta_datas, we have to reduce it here
+        print, '[', strtrim(j+offset-limit, 2), ']   ', sets[j].d_obs, '     ', sets[j].t_beg, '     ' $
+               , sets[j].t_end, '      ', sets[j].wavelnth, '         ', sets[j].polar, '          ' $
+               , sets[j].propr
+      endfor
+      print
+      ans = ''
+      read,"  Select datasets (like: 2,4-7; * - for all; q - quit) or press Enter for none > ", ans
+      if strlowcase(ans) eq 'q' then return
+      if ans ne '' then begin
+        if ans eq '*' then selected = indgen(Nsets) else selected = expand_range(ans)-offset+limit
+        for l = 0, n_elements(selected)-1 do begin
+          set_no = sets[selected[l]].no
+          if ~credentials and ~keyword_set(no_proprietary) then $
+            fname = download_sst_data(metadatas[set_no], dir=dir, verbose=verbose, nodownload=nodownload $
+                                      , no_spectral=no_spectral, no_wbcube=no_wbcube) $
+          else $
+            fname = download_sst_data(metadatas[set_no], dir=dir, user_name=user_name $
+                                      , user_passwd=user_passwd, verbose=verbose, nodownload=nodownload $
+                                      , no_spectral=no_spectral, no_wbcube=no_wbcube)
+          if fname eq '' then begin
+            print, 'No download.'
+          endif else begin
+            print, 'Downloaded file: ', fname
+          endelse
         endfor
-        print
-        ans = ''
-        read,"  Select datasets (like: 2,4-7; * - for all; q - quit) or press Enter for none > ", ans
-        if strlowcase(ans) eq 'q' then return
-        if ans ne '' then begin
-           if ans eq '*' then selected = indgen(Nsets) else selected = expand_range(ans)-offset+limit
-           for l = 0, n_elements(selected)-1 do begin
-              set_no = sets[selected[l]].no
-              if ~credentials and ~keyword_set(no_proprietary) then $
-                 fname = download_sst_data(metadatas[set_no], dir=dir, verbose=verbose, nodownload=nodownload, /no_spectral) $
-              else $
-                 fname = download_sst_data(metadatas[set_no], dir=dir, user_name=user_name, user_passwd=user_passwd, verbose=verbose,nodownload=nodownload, /no_spectral)
-              if fname eq '' then begin
-                 print, 'No download.'
-              endif else begin
-                 print, 'Downloaded file: ', fname
-              endelse
-           endfor
-        endif ;;else print,'You have not selected any set.'
-     endif
+      endif ;;else print,'You have not selected any set.'
+    endif
 
-     sets=[]
+    sets=[]
      
   endrep until Nmetas eq 0
 
