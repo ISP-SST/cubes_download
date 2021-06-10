@@ -48,8 +48,8 @@
 ; 
 ;    2020-12-04 : OA. First version.
 ;
-;    2020-06-09 : OA. Eneable filters in get_meta_datas, add
-;                 no_spectral and no_wbcube keywords. 
+;    2020-06-07 : OA. Eneable filters in 'get_meta_datas', add
+;                 'no_spectral' keyword. 
 ; 
 ;-
 pro seek_and_get, dir=dir, any=any, no_proprietary=no_proprietary, verbose=verbose $
@@ -86,7 +86,7 @@ pro seek_and_get, dir=dir, any=any, no_proprietary=no_proprietary, verbose=verbo
     print
     answ = ''
     read, " > ",  answ
-    if strupcase(answ) eq 'Y' then no_wbcube = 0B else no_cube = 1B
+    if strupcase(answ) eq 'Y' then no_wbcube = 0B else no_wbcube = 1B
   endif
 
   if ~keyword_set(any) then begin
