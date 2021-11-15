@@ -69,7 +69,8 @@ function get_cube, filename,  data_date,  instrument,  url_scheme, url_hostname,
     print, 'Called with /nodownload'
     print, '    URL='+url_scheme+'://'+url_hostname+'/'+url_path
     print, '    query= ', url_query
-    print, '    Local filename='+dir + PATH_SEP() + filename 
+    print, '    Local filename='+dir + PATH_SEP() + filename
+    aaa = ''
   endif else begin
     print, '    URL='+url_scheme+'://'+url_hostname+'/'+url_path
     print, '    query= ', url_query

@@ -168,9 +168,9 @@ pro seek_and_get, dir=dir, any=any, no_proprietary=no_proprietary, verbose=verbo
 
   repeat begin
     if naxis4 ne '0' then $
-      metadatas = get_meta_datas(dataset[0], limit=limit, offset=offset, wavelnth={min:wavelnth_min, max:wavelnth_max}, date_obs={min:dt_beg,  max:dt_end},  naxis4=naxis4 ) $
+      metadatas = get_metadatas(dataset[0], limit=limit, offset=offset, wavelnth={min:wavelnth_min, max:wavelnth_max}, date_obs={min:dt_beg,  max:dt_end},  naxis4={min:naxis4, max:naxis4} ) $
     else $
-      metadatas = get_meta_datas(dataset[0], limit=limit, offset=offset, wavelnth={min:wavelnth_min, max:wavelnth_max}, date_obs={min:dt_beg,  max:dt_end})
+      metadatas = get_metadatas(dataset[0], limit=limit, offset=offset, wavelnth={min:wavelnth_min, max:wavelnth_max}, date_obs={min:dt_beg,  max:dt_end})
     Nmetas = n_elements(metadatas)
 
     for i = 0, Nmetas-1 do begin
