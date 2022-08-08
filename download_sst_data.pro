@@ -129,11 +129,8 @@ function download_sst_data, meta_data $
                             , verbose = verbose
 
   if N_ELEMENTS(dir) eq 0 then dir = '.'
-
-  pth_split = strsplit(meta_data.data_location.file_path, '/', /EXTRACT)
-  print, meta_data.data_location
-  ;data_date = pth_split[0]
-  instrument = pth_split[1]
+  
+  instrument = (strsplit(meta_data.data_location.dataset,'/',/extract))[-1]
   im_filename =  meta_data.FILENAME
   fnm_split = strsplit(im_filename,'_',/extract)
   data_date=(strsplit(fnm_split[2],'T',/extract))[0]
@@ -205,7 +202,7 @@ function download_sst_data, meta_data $
   if strmatch(im_filename, '*_im.fits') and ~keyword_set(no_spectral) then begin
     ;; There might be a spectral version of the cube.
     print
-    print, 'Will first try to download the spectral version of the cube.'
+    print, 'Will try to download the spectral version of the cube.'
     res = get_cube( sp_filename,  data_date,  instrument,  url_scheme, url_hostname, url_path $
               , dir, nodownload=nodownload,  verbose=verbose, authentication=authentication $
               , user_name=user_name, user_passwd=user_passwd)        
