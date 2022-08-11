@@ -82,14 +82,16 @@ function get_cube, filename,  data_date,  instrument,  url_scheme, url_hostname,
                       , url_username=user_name $
                       , url_password=user_passwd $
                       , url_query=url_query $     
-                      , VERBOSE=verbose)
+                      , VERBOSE=verbose $
+                      , timeout = 180000 )
     endif else begin
       url = OBJ_NEW('IDLnetUrl', authentication=authentication $
                           , url_hostname=url_hostname $
                           , url_path=url_path $
                           , url_scheme=url_scheme $
                           , url_query=url_query $     
-                          , VERBOSE=verbose)
+                          , VERBOSE=verbose $
+                          , timeout = 180000 )
     endelse
     fnm = dir + PATH_SEP() + filename
     aaa = url -> Get(FILENAME=fnm)
